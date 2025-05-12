@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<FOV>58.945521515712883</FOV>
+<resolution type_id="opencv-matrix">
+  <rows>2</rows>
+  <cols>1</cols>
+  <dt>i</dt>
+  <data>
+    1280 960</data></resolution>
+<sensorOffsets type_id="opencv-matrix">
+  <rows>2</rows>
+  <cols>1</cols>
+  <dt>d</dt>
+  <data>
+    -0.1199951171875 -5.552978515625</data></sensorOffsets>
+<radialDistortion type_id="opencv-matrix">
+  <rows>3</rows>
+  <cols>1</cols>
+  <dt>d</dt>
+  <data>
+    -0.024677705019712448 -0.0056722164154052734 0.</data></radialDistortion>
+<tangentialDistortion type_id="opencv-matrix">
+  <rows>2</rows>
+  <cols>1</cols>
+  <dt>d</dt>
+  <data>
+    -0.00030131090898066759 0.00054762919899076223</data></tangentialDistortion>
+<position type_id="opencv-matrix">
+  <rows>3</rows>
+  <cols>1</cols>
+  <dt>d</dt>
+  <data>
+    0. 10.5 12.5</data></position>
+<eulerAngles type_id="opencv-matrix">
+  <rows>3</rows>
+  <cols>1</cols>
+  <dt>d</dt>
+  <data>
+    9.6686193466706332 -0.15500849083855761 -0.10327239599663821</data></eulerAngles>
+<focalLength type_id="opencv-matrix">
+  <rows>2</rows>
+  <cols>1</cols>
+  <dt>d</dt>
+  <data>
+    1132.4520263671875 1132.4520263671875</data></focalLength>
+<principalPoint type_id="opencv-matrix">
+  <rows>2</rows>
+  <cols>1</cols>
+  <dt>d</dt>
+  <data>
+    639.8800048828125 474.447021484375</data></principalPoint>
+<rotation type_id="opencv-matrix">
+  <rows>3</rows>
+  <cols>3</cols>
+  <dt>d</dt>
+  <data>
+    -0.99999471598995882 0.0018024357643554464 -0.0027054052334278818
+    -0.0013224690644909587 -0.98579481980699157 -0.16794887411731757
+    -0.0029696915218842142 -0.16794440885905221 0.9857919945228043</data></rotation>
+<cameraMatrix type_id="opencv-matrix">
+  <rows>3</rows>
+  <cols>3</cols>
+  <dt>d</dt>
+  <data>
+    1132.4520263671875 0. 639.8800048828125 0. 1132.4520263671875
+    474.447021484375 0. 0. 1.</data></cameraMatrix>
+<distCoeff type_id="opencv-matrix">
+  <rows>5</rows>
+  <cols>1</cols>
+  <dt>d</dt>
+  <data>
+    -0.024677705019712448 -0.0056722164154052734 -0.00030131090898066759
+    0.00054762919899076223 0.</data></distCoeff>
+</opencv_storage>

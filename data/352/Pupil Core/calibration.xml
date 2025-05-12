@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<resolution type_id="opencv-matrix">
+  <rows>2</rows>
+  <cols>1</cols>
+  <dt>i</dt>
+  <data>
+    1280 720</data></resolution>
+<cam_type>radial</cam_type>
+<cameraMatrix type_id="opencv-matrix">
+  <rows>3</rows>
+  <cols>3</cols>
+  <dt>d</dt>
+  <data>
+    794.33114398696546 0. 633.01044377286246 0. 793.5290139393004
+    397.36927353414865 0. 0. 1.</data></cameraMatrix>
+<distCoeff type_id="opencv-matrix">
+  <rows>8</rows>
+  <cols>1</cols>
+  <dt>d</dt>
+  <data>
+    -0.37586280650708059 0.1643326166951343 0.00012182540692089567
+    0.00013422608638039466 0.033436917338650757 0.082352357708497262
+    -0.08225804883227375 0.14463365333602152</data></distCoeff>
+</opencv_storage>

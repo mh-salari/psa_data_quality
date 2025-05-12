@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<serial_number>"398831"</serial_number>
+<cameraMatrix type_id="opencv-matrix">
+  <rows>3</rows>
+  <cols>3</cols>
+  <dt>d</dt>
+  <data>
+    886.01313002725033 0. 789.48213906320188 0. 885.99625213065735
+    622.43867513914097 0. 0. 1.</data></cameraMatrix>
+<distCoeff type_id="opencv-matrix">
+  <rows>8</rows>
+  <cols>1</cols>
+  <dt>d</dt>
+  <data>
+    -0.12963311765596564 0.10772846503409578 0.00057228197996930254
+    0.00041327542977206305 1.2091082617436006e-07 0.16829604434930726
+    0.053559395522305084 0.024070187500995096</data></distCoeff>
+<resolution type_id="opencv-matrix">
+  <rows>2</rows>
+  <cols>1</cols>
+  <dt>i</dt>
+  <data>
+    1600 1200</data></resolution>
+</opencv_storage>
