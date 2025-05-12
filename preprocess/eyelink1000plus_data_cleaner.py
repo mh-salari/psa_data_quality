@@ -14,7 +14,6 @@ EYELINK_REFERENCE_DIAMETER_MM = 15
 
 
 def load_and_preprocess_data(data_path):
-    """Load and preprocess raw EyeLink data into a common data column names."""
     # Load raw data
     raw_df = pd.read_csv(
         data_path,
@@ -24,8 +23,10 @@ def load_and_preprocess_data(data_path):
         dtype={"RECORDING_SESSION_LABEL": str},
     )
 
-    # Calculate relative time from trial start
-    min_timestamp = raw_df.groupby(["RECORDING_SESSION_LABEL", "TRIAL_INDEX"])["TIMESTAMP"].transform("min")
+    # Calculate time from trial start
+    min_timestamp = raw_df.groupby(["RECORDING_SESSION_LABEL", "TRIAL_INDEX"])[
+        "TIMESTAMP"
+    ].transform("min")
     raw_df["TIME_FROM_TRIAL_START_MS"] = raw_df["TIMESTAMP"] - min_timestamp
 
     # Clean participant IDs to only include digits
@@ -41,14 +42,18 @@ def load_and_preprocess_data(data_path):
     processed_df["trial_condition"] = [
         "dilated" if idx % 2 == 1 else "constricted" for idx in raw_df["TRIAL_INDEX"]
     ]
-    
+
     # Set spatial coordinates and angles
     processed_df["target_x"] = 1920 / 2
     processed_df["target_y"] = 1080 / 2
     processed_df["gaze_x"] = raw_df["AVERAGE_GAZE_X"]
     processed_df["gaze_y"] = raw_df["AVERAGE_GAZE_Y"]
-    processed_df["gaze_angle_x"] = (raw_df["AVERAGE_GAZE_X"] - 1920 / 2) / raw_df["RESOLUTION_X"]
-    processed_df["gaze_angle_y"] = (raw_df["AVERAGE_GAZE_Y"] - 1080 / 2) / raw_df["RESOLUTION_Y"]
+    processed_df["gaze_angle_x"] = (raw_df["AVERAGE_GAZE_X"] - 1920 / 2) / raw_df[
+        "RESOLUTION_X"
+    ]
+    processed_df["gaze_angle_y"] = (raw_df["AVERAGE_GAZE_Y"] - 1080 / 2) / raw_df[
+        "RESOLUTION_Y"
+    ]
     processed_df["target_angle_x"] = 0
     processed_df["target_angle_y"] = 0
 
@@ -65,14 +70,16 @@ def load_and_preprocess_data(data_path):
     )
 
     processed_df["TIME_FROM_TRIAL_START_MS"] = raw_df["TIME_FROM_TRIAL_START_MS"]
-    
+
     return processed_df
 
 
-def process_and_clean_data(df, trial_duration_ms=5000, time_trim=25, distance_threshold=10, z_threshold=3):
+def process_and_clean_data(
+    df, trial_duration_ms=5000, time_trim=25, distance_threshold=10, z_threshold=3
+):
     """
-    Process and clean eye tracking data through time trimming and spatial filtering.
-    
+    Process and clean eye tracking data.
+
     Args:
         df: Input DataFrame with eye tracking data
         trial_duration_ms: Duration to extract from each trial in milliseconds
@@ -80,156 +87,223 @@ def process_and_clean_data(df, trial_duration_ms=5000, time_trim=25, distance_th
         distance_threshold: Maximum allowed distance from target
         z_threshold: Z-score threshold for outlier removal
     """
+
+    data_columns = [
+        "gaze_x",
+        "gaze_y",
+        "gaze_angle_x",
+        "gaze_angle_y",
+        "pup_diam_l",
+        "pup_diam_r",
+    ]
+
     # Step 1: Time-based trimming
-    print("Applying time-based trimming...")
     time_trimmed_df = pd.DataFrame()
-    
+    time_trim_stats = []
+
     # Calculate trim percentage for each end (half of total trim)
     edge_trim_percentage = time_trim / 2
-    
+
     for (participant_id, trial_num), group_df in tqdm(
         df.groupby(["participant_id", "trial_number"]), desc="Time trimming"
     ):
+        # Count initial rows
+        initial_rows = len(group_df)
+
         # Extract the relevant time segment (last 5 seconds by default)
         max_time = group_df["TIME_FROM_TRIAL_START_MS"].max()
+        min_time = max_time - trial_duration_ms
+
+        # Select only data from the last 5 seconds
         last_section = group_df[
-            (group_df["TIME_FROM_TRIAL_START_MS"] >= max_time - trial_duration_ms)
+            (group_df["TIME_FROM_TRIAL_START_MS"] >= min_time)
             & (group_df["TIME_FROM_TRIAL_START_MS"] <= max_time)
         ]
-        
-        if len(last_section) == 0:
+
+        five_second_rows = len(last_section)
+
+        if five_second_rows == 0:
+            print(
+                f"Warning: No data in the last {trial_duration_ms}ms for participant {participant_id}, trial {trial_num}"
+            )
             continue
-            
-        # Trim specified percentage from start and end using the time_trim parameter
-        time_range = last_section["TIME_FROM_TRIAL_START_MS"].max() - last_section["TIME_FROM_TRIAL_START_MS"].min()
-        start_trim = last_section["TIME_FROM_TRIAL_START_MS"].min() + (time_range * edge_trim_percentage / 100)
-        end_trim = last_section["TIME_FROM_TRIAL_START_MS"].max() - (time_range * edge_trim_percentage / 100)
-        
-        trimmed_data = last_section[
-            (last_section["TIME_FROM_TRIAL_START_MS"] >= start_trim)
-            & (last_section["TIME_FROM_TRIAL_START_MS"] <= end_trim)
-        ]
-        
+
+        # Calculate additional trim within the 5-second window
+        trimmed_data = last_section
+        if time_trim > 0:
+            time_range = (
+                last_section["TIME_FROM_TRIAL_START_MS"].max()
+                - last_section["TIME_FROM_TRIAL_START_MS"].min()
+            )
+            start_trim = last_section["TIME_FROM_TRIAL_START_MS"].min() + (
+                time_range * edge_trim_percentage / 100
+            )
+            end_trim = last_section["TIME_FROM_TRIAL_START_MS"].max() - (
+                time_range * edge_trim_percentage / 100
+            )
+
+            trimmed_data = last_section[
+                (last_section["TIME_FROM_TRIAL_START_MS"] >= start_trim)
+                & (last_section["TIME_FROM_TRIAL_START_MS"] <= end_trim)
+            ]
+
+        final_rows = len(trimmed_data)
+
+        # Store trimming statistics
+        time_trim_stats.append(
+            {
+                "participant_id": participant_id,
+                "trial_number": trial_num,
+                "initial_rows": initial_rows,
+                "five_second_rows": five_second_rows,
+                "final_rows": final_rows,
+            }
+        )
+
+        # Add to our result dataframe
         time_trimmed_df = pd.concat([time_trimmed_df, trimmed_data])
-    
+
+    # Reset index of the combined dataframe
     time_trimmed_df = time_trimmed_df.reset_index(drop=True)
-    
-    # Step 2: Remove NaN values and calculate statistics
-    data_columns = ['gaze_x', 'gaze_y', 'gaze_angle_x', 'gaze_angle_y', 'pup_diam_l', 'pup_diam_r']
-    
-    # Count rows with NaNs before removal
-    rows_with_nan = time_trimmed_df[data_columns].isna().any(axis=1)
-    
-    # Get stats for each condition
-    dilated_mask = time_trimmed_df['trial_condition'] == 'dilated'
-    constricted_mask = time_trimmed_df['trial_condition'] == 'constricted'
-    
-    # Count total rows and rows with NaNs for each condition
-    dilated_total = dilated_mask.sum()
-    dilated_nan_rows = (dilated_mask & rows_with_nan).sum()
-    
-    constricted_total = constricted_mask.sum()
-    constricted_nan_rows = (constricted_mask & rows_with_nan).sum()
-    
-    total_rows = len(time_trimmed_df)
-    total_nan_rows = rows_with_nan.sum()
-    
-    # Print statistics
-    print("\n---- NaN Statistics by Condition ----")
-    print(f"Dilated: {dilated_nan_rows} rows with NaNs out of {dilated_total} rows ({dilated_nan_rows/dilated_total*100:.2f}%)")
-    print(f"Constricted: {constricted_nan_rows} rows with NaNs out of {constricted_total} rows ({constricted_nan_rows/constricted_total*100:.2f}%)")
-    print(f"Total: {total_nan_rows} rows with NaNs out of {total_rows} rows ({total_nan_rows/total_rows*100:.2f}%)")
-    
+
+    # Step 2: Calculate NaN statistics by participant and condition
+    nan_stats_list = []
+
+    # Calculate NaN statistics for each participant and condition
+    for participant_id, participant_data in time_trimmed_df.groupby("participant_id"):
+        for condition in ["dilated", "constricted"]:
+            condition_mask = participant_data["trial_condition"] == condition
+            condition_data = participant_data[condition_mask]
+
+            if len(condition_data) > 0:
+                # Count rows with NaNs for this participant and condition
+                nan_rows = condition_data[data_columns].isna().any(axis=1).sum()
+                total_rows = len(condition_data)
+
+                nan_stats_list.append(
+                    {
+                        "participant_id": participant_id,
+                        "condition": condition,
+                        "total_rows": total_rows,
+                        "nan_rows": nan_rows,
+                        "nan_percentage": (
+                            (nan_rows / total_rows * 100) if total_rows > 0 else 0
+                        ),
+                    }
+                )
+
+    # Add overall statistics
+    overall_nan_rows = time_trimmed_df[data_columns].isna().any(axis=1).sum()
+    overall_total_rows = len(time_trimmed_df)
+
+    nan_stats_list.append(
+        {
+            "participant_id": "ALL",
+            "condition": "ALL",
+            "total_rows": overall_total_rows,
+            "nan_rows": overall_nan_rows,
+            "nan_percentage": (
+                (overall_nan_rows / overall_total_rows * 100)
+                if overall_total_rows > 0
+                else 0
+            ),
+        }
+    )
+
+    print(
+        f"OVERALL: {overall_nan_rows} NaN rows out of {overall_total_rows} rows "
+        f"({(overall_nan_rows / overall_total_rows * 100):.2f}%)"
+    )
+
+    # Create NaN statistics dataframe
+    nan_stats_df = pd.DataFrame(nan_stats_list)
+
     # Remove rows with NaNs
     time_trimmed_df = time_trimmed_df.dropna(subset=data_columns)
-    
+
     # Step 3: Remove timing column
     time_trimmed_df.drop(columns=["TIME_FROM_TRIAL_START_MS"], inplace=True)
-    
+
     # Step 4: Apply spatial filtering
-    print("\nApplying spatial filtering...")
     filtered_df = pd.DataFrame()
-    
+
     for participant_id, participant_data in tqdm(
         time_trimmed_df.groupby("participant_id"), desc="Spatial filtering"
     ):
         for trial in participant_data["trial_number"].unique():
-            trial_data = participant_data[participant_data["trial_number"] == trial].copy()
-            
+            trial_data = participant_data[
+                participant_data["trial_number"] == trial
+            ].copy()
+
             # Distance-based filtering
             trial_data["distance_to_target"] = np.sqrt(
-                (trial_data["gaze_angle_x"] - trial_data["target_angle_x"])**2 + 
-                (trial_data["gaze_angle_y"] - trial_data["target_angle_y"])**2
+                (trial_data["gaze_angle_x"] - trial_data["target_angle_x"]) ** 2
+                + (trial_data["gaze_angle_y"] - trial_data["target_angle_y"]) ** 2
             )
-            distance_filtered = trial_data[trial_data["distance_to_target"] <= distance_threshold]
-            
+            distance_filtered = trial_data[
+                trial_data["distance_to_target"] <= distance_threshold
+            ]
+
             # Z-score filtering
             valid_mask = pd.Series(True, index=distance_filtered.index)
             for col in ["gaze_angle_x", "gaze_angle_y"]:
-                z_scores = np.abs(stats.zscore(distance_filtered[col], nan_policy="omit"))
+                z_scores = np.abs(
+                    stats.zscore(distance_filtered[col], nan_policy="omit")
+                )
                 valid_mask &= z_scores < z_threshold
-            
-            cleaned_data = distance_filtered[valid_mask].drop(columns=["distance_to_target"])
+
+            cleaned_data = distance_filtered[valid_mask].drop(
+                columns=["distance_to_target"]
+            )
+
             filtered_df = pd.concat([filtered_df, cleaned_data])
-    
-    # Create a basic nan_stats dataframe for compatibility with the rest of the code
-    nan_stats_df = pd.DataFrame([
-        {'condition': 'dilated', 'total_rows': dilated_total, 'nan_rows': dilated_nan_rows, 'nan_percentage': dilated_nan_rows/dilated_total*100},
-        {'condition': 'constricted', 'total_rows': constricted_total, 'nan_rows': constricted_nan_rows, 'nan_percentage': constricted_nan_rows/constricted_total*100},
-        {'condition': 'ALL', 'total_rows': total_rows, 'nan_rows': total_nan_rows, 'nan_percentage': total_nan_rows/total_rows*100}
-    ])
-    
+
     return filtered_df, nan_stats_df
 
+
 def main():
-    """Process eye tracking data and save by participant."""
-    # Setup paths
+
     current_file_path = Path(__file__).resolve()
     project_dir_path = current_file_path.parent.parent
-    data_path = project_dir_path / "recordings/eyelink1000plus/Output/all_participants.xls"
+    data_path = (
+        project_dir_path / "recordings/eyelink1000plus/Output/all_participants.xls"
+    )
     output_dir = project_dir_path / "data"
     os.makedirs(output_dir, exist_ok=True)
 
     # Load and process data
     print("Loading and preprocessing eye tracking data...")
     raw_data = load_and_preprocess_data(data_path)
-    
-    # Process and clean data with specified parameters
+
+    # Process and clean data
     cleaned_data, nan_stats = process_and_clean_data(
-        raw_data, 
+        raw_data,
         trial_duration_ms=5000,
         time_trim=25,  # 25% total trim (12.5% from each end)
-        distance_threshold=10, 
-        z_threshold=3
+        distance_threshold=10,
+        z_threshold=3,
     )
-    
-    
+
     # Save NaN statistics
     nan_stats_file = output_dir / "eyelink1000plus_nan_statistics.csv"
     nan_stats.to_csv(nan_stats_file, index=False)
-    print(f"\nDetailed NaN statistics saved to {nan_stats_file}")
-    
+    print(
+        f"Detailed NaN statistics by participant and condition saved to {nan_stats_file}"
+    )
+
     # Save data by participant
-    print(f"\nSaving data for {cleaned_data['participant_id'].nunique()} participants...")
-    for participant_id in tqdm(cleaned_data['participant_id'].unique(), desc="Saving data"):
+    print(f"Saving data for {cleaned_data['participant_id'].nunique()} participants...")
+    for participant_id in tqdm(
+        cleaned_data["participant_id"].unique(), desc="Saving data"
+    ):
         participant_dir = output_dir / f"{participant_id}/eyelink1000plus/"
         os.makedirs(participant_dir, exist_ok=True)
-        
-        participant_data = cleaned_data[cleaned_data['participant_id'] == participant_id]
+
+        participant_data = cleaned_data[
+            cleaned_data["participant_id"] == participant_id
+        ]
         save_path = participant_dir / "data.csv"
         participant_data.to_csv(save_path, index=False)
-    
-    # Calculate and print final statistics
-    total_participants = cleaned_data['participant_id'].nunique()
-    total_rows = len(cleaned_data)
-    rows_by_condition = cleaned_data.groupby('trial_condition').size()
-    
-    print(f"\nProcessing complete.")
-    print(f"Total participants: {total_participants}")
-    print(f"Total rows in final dataset: {total_rows}")
-    print(f"Rows by condition:")
-    for condition, count in rows_by_condition.items():
-        print(f"  {condition}: {count} rows ({count/total_rows*100:.2f}%)")
 
 
 if __name__ == "__main__":
