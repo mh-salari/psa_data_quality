@@ -14,7 +14,7 @@ EYELINK_REFERENCE_DIAMETER_MM = 15
 
 
 def load_and_preprocess_data(data_path):
-    """Load and preprocess raw EyeLink data into a standardized format."""
+    """Load and preprocess raw EyeLink data into a common data column names."""
     # Load raw data
     raw_df = pd.read_csv(
         data_path,
@@ -33,7 +33,7 @@ def load_and_preprocess_data(data_path):
         lambda x: "".join(filter(str.isdigit, str(x)))
     )
 
-    # Transform raw data into standardized format
+    # Rename raw data into common data format
     processed_df = pd.DataFrame()
     processed_df["eye_tracker"] = ["EyeLink 1000 Plus"] * len(raw_df)
     processed_df["participant_id"] = raw_df["RECORDING_SESSION_LABEL"]
