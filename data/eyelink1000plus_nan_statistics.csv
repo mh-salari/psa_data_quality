@@ -1,8 +1,8 @@
 eye_tracker,participant_id,condition,total_rows,nan_rows,nan_percentage
 EyeLink 1000 Plus,137,constricted,7503,0,0.0
 EyeLink 1000 Plus,137,dilated,7503,0,0.0
-EyeLink 1000 Plus,141,constricted,15003,0,0.0
-EyeLink 1000 Plus,141,dilated,15003,0,0.0
+EyeLink 1000 Plus,141,constricted,7503,0,0.0
+EyeLink 1000 Plus,141,dilated,7503,0,0.0
 EyeLink 1000 Plus,199,constricted,7503,0,0.0
 EyeLink 1000 Plus,199,dilated,7503,0,0.0
 EyeLink 1000 Plus,210,constricted,7503,0,0.0
@@ -11,8 +11,8 @@ EyeLink 1000 Plus,231,constricted,7503,0,0.0
 EyeLink 1000 Plus,231,dilated,7503,0,0.0
 EyeLink 1000 Plus,259,constricted,7503,0,0.0
 EyeLink 1000 Plus,259,dilated,7503,0,0.0
-EyeLink 1000 Plus,276,constricted,15003,166,1.1064453775911485
-EyeLink 1000 Plus,276,dilated,15003,0,0.0
+EyeLink 1000 Plus,276,constricted,7503,84,1.1195521791283487
+EyeLink 1000 Plus,276,dilated,7503,0,0.0
 EyeLink 1000 Plus,299,constricted,7503,125,1.6660002665600426
 EyeLink 1000 Plus,299,dilated,7503,63,0.8396641343462616
 EyeLink 1000 Plus,319,constricted,7503,0,0.0
@@ -21,8 +21,8 @@ EyeLink 1000 Plus,332,constricted,7503,0,0.0
 EyeLink 1000 Plus,332,dilated,7503,0,0.0
 EyeLink 1000 Plus,347,constricted,7503,0,0.0
 EyeLink 1000 Plus,347,dilated,7503,0,0.0
-EyeLink 1000 Plus,352,constricted,15003,0,0.0
-EyeLink 1000 Plus,352,dilated,15003,0,0.0
+EyeLink 1000 Plus,352,constricted,7503,0,0.0
+EyeLink 1000 Plus,352,dilated,7503,0,0.0
 EyeLink 1000 Plus,354,constricted,7503,6,0.07996801279488205
 EyeLink 1000 Plus,354,dilated,7503,0,0.0
 EyeLink 1000 Plus,375,constricted,7503,45,0.5997600959616154
@@ -35,15 +35,15 @@ EyeLink 1000 Plus,460,constricted,7503,13,0.17326402772224445
 EyeLink 1000 Plus,460,dilated,7503,0,0.0
 EyeLink 1000 Plus,503,constricted,7503,0,0.0
 EyeLink 1000 Plus,503,dilated,7503,0,0.0
-EyeLink 1000 Plus,695,constricted,15003,0,0.0
-EyeLink 1000 Plus,695,dilated,15003,0,0.0
+EyeLink 1000 Plus,695,constricted,7503,0,0.0
+EyeLink 1000 Plus,695,dilated,7503,0,0.0
 EyeLink 1000 Plus,772,constricted,7503,0,0.0
 EyeLink 1000 Plus,772,dilated,7503,0,0.0
 EyeLink 1000 Plus,796,constricted,7503,0,0.0
 EyeLink 1000 Plus,796,dilated,7503,0,0.0
 EyeLink 1000 Plus,844,constricted,7503,12,0.1599360255897641
 EyeLink 1000 Plus,844,dilated,7503,71,0.9462881514061043
-EyeLink 1000 Plus,875,constricted,15003,0,0.0
-EyeLink 1000 Plus,875,dilated,15003,0,0.0
-EyeLink 1000 Plus,914,constricted,15003,0,0.0
-EyeLink 1000 Plus,914,dilated,15003,0,0.0
+EyeLink 1000 Plus,875,constricted,7503,0,0.0
+EyeLink 1000 Plus,875,dilated,7503,0,0.0
+EyeLink 1000 Plus,914,constricted,7503,0,0.0
+EyeLink 1000 Plus,914,dilated,7503,0,0.0
