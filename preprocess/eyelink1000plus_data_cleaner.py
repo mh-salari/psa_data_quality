@@ -97,69 +97,78 @@ def process_and_clean_data(
         "pup_diam_r",
     ]
 
-    # Step 1: Time-based trimming
-    time_trimmed_df = pd.DataFrame()
-    time_trim_stats = []
-
-    # Calculate trim percentage for each end (half of total trim)
-    edge_trim_percentage = time_trim / 2
+    # Step 1: Extract 5-second windows
+    five_second_windows = pd.DataFrame()
 
     for (participant_id, trial_num), group_df in tqdm(
-        df.groupby(["participant_id", "trial_number"]), desc="Time trimming"
+        df.groupby(["participant_id", "trial_number"]),
+        desc="Extracting 5-second windows",
     ):
-        # Count initial rows
-        initial_rows = len(group_df)
-
-        # Extract the relevant time segment (last 5 seconds by default)
+        # Select only data from the last 5 seconds
         max_time = group_df["TIME_FROM_TRIAL_START_MS"].max()
         min_time = max_time - trial_duration_ms
 
-        # Select only data from the last 5 seconds
         last_section = group_df[
             (group_df["TIME_FROM_TRIAL_START_MS"] >= min_time)
             & (group_df["TIME_FROM_TRIAL_START_MS"] <= max_time)
         ]
 
-        five_second_rows = len(last_section)
+        # Add to collection of all 5-second windows
+        five_second_windows = pd.concat([five_second_windows, last_section])
 
-        if five_second_rows == 0:
-            print(
-                f"Warning: No data in the last {trial_duration_ms}ms for participant {participant_id}, trial {trial_num}"
-            )
-            continue
+    # Step 2: Calculate NaN statistics by participant and condition
+    nan_stats_list = []
 
-        # Calculate additional trim within the 5-second window
-        trimmed_data = last_section
-        if time_trim > 0:
-            time_range = (
-                last_section["TIME_FROM_TRIAL_START_MS"].max()
-                - last_section["TIME_FROM_TRIAL_START_MS"].min()
-            )
-            start_trim = last_section["TIME_FROM_TRIAL_START_MS"].min() + (
-                time_range * edge_trim_percentage / 100
-            )
-            end_trim = last_section["TIME_FROM_TRIAL_START_MS"].max() - (
-                time_range * edge_trim_percentage / 100
-            )
+    for (participant_id, condition), group_df in five_second_windows.groupby(
+        ["participant_id", "trial_condition"]
+    ):
+        total_rows = len(group_df)
+        nan_rows = group_df[data_columns].isna().any(axis=1).sum()
 
-            trimmed_data = last_section[
-                (last_section["TIME_FROM_TRIAL_START_MS"] >= start_trim)
-                & (last_section["TIME_FROM_TRIAL_START_MS"] <= end_trim)
-            ]
-
-        final_rows = len(trimmed_data)
-
-        # Store trimming statistics
-        time_trim_stats.append(
+        nan_stats_list.append(
             {
                 "eye_tracker": "EyeLink 1000 Plus",
                 "participant_id": participant_id,
-                "trial_number": trial_num,
-                "initial_rows": initial_rows,
-                "five_second_rows": five_second_rows,
-                "final_rows": final_rows,
+                "condition": condition,
+                "total_rows": total_rows,
+                "nan_rows": nan_rows,
+                "nan_percentage": (
+                    (nan_rows / total_rows * 100) if total_rows > 0 else 0
+                ),
             }
         )
+
+    nan_stats_df = pd.DataFrame(nan_stats_list)
+
+    # Step 3: Remove NaNs
+    five_second_windows = five_second_windows.dropna(subset=data_columns)
+
+    # Step 4: Apply time trimming
+    time_trimmed_df = pd.DataFrame()
+    edge_trim_percentage = time_trim / 2
+
+    for (participant_id, trial_num), group_df in tqdm(
+        five_second_windows.groupby(["participant_id", "trial_number"]),
+        desc="Time trimming",
+    ):
+        trimmed_data = group_df
+
+        if time_trim > 0:
+            time_range = (
+                group_df["TIME_FROM_TRIAL_START_MS"].max()
+                - group_df["TIME_FROM_TRIAL_START_MS"].min()
+            )
+            start_trim = group_df["TIME_FROM_TRIAL_START_MS"].min() + (
+                time_range * edge_trim_percentage / 100
+            )
+            end_trim = group_df["TIME_FROM_TRIAL_START_MS"].max() - (
+                time_range * edge_trim_percentage / 100
+            )
+
+            trimmed_data = group_df[
+                (group_df["TIME_FROM_TRIAL_START_MS"] >= start_trim)
+                & (group_df["TIME_FROM_TRIAL_START_MS"] <= end_trim)
+            ]
 
         # Add to our result dataframe
         time_trimmed_df = pd.concat([time_trimmed_df, trimmed_data])
@@ -167,43 +176,10 @@ def process_and_clean_data(
     # Reset index of the combined dataframe
     time_trimmed_df = time_trimmed_df.reset_index(drop=True)
 
-    # Step 2: Calculate NaN statistics by participant and condition
-    nan_stats_list = []
-
-    # Calculate NaN statistics for each participant and condition
-    for participant_id, participant_data in time_trimmed_df.groupby("participant_id"):
-        for condition in ["dilated", "constricted"]:
-            condition_mask = participant_data["trial_condition"] == condition
-            condition_data = participant_data[condition_mask]
-
-            if len(condition_data) > 0:
-                # Count rows with NaNs for this participant and condition
-                nan_rows = condition_data[data_columns].isna().any(axis=1).sum()
-                total_rows = len(condition_data)
-
-                nan_stats_list.append(
-                    {
-                        "eye_tracker": "EyeLink 1000 Plus",
-                        "participant_id": participant_id,
-                        "condition": condition,
-                        "total_rows": total_rows,
-                        "nan_rows": nan_rows,
-                        "nan_percentage": (
-                            (nan_rows / total_rows * 100) if total_rows > 0 else 0
-                        ),
-                    }
-                )
-
-    # Create NaN statistics dataframe
-    nan_stats_df = pd.DataFrame(nan_stats_list)
-
-    # Remove rows with NaNs
-    time_trimmed_df = time_trimmed_df.dropna(subset=data_columns)
-
-    # Step 3: Remove timing column
+    # Remove timing column
     time_trimmed_df.drop(columns=["TIME_FROM_TRIAL_START_MS"], inplace=True)
 
-    # Step 4: Apply spatial filtering
+    # Step 5: Apply spatial filtering
     filtered_df = pd.DataFrame()
 
     for participant_id, participant_data in tqdm(
