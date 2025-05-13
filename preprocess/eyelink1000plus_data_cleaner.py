@@ -152,6 +152,7 @@ def process_and_clean_data(
         # Store trimming statistics
         time_trim_stats.append(
             {
+                "eye_tracker": "EyeLink 1000 Plus",
                 "participant_id": participant_id,
                 "trial_number": trial_num,
                 "initial_rows": initial_rows,
@@ -182,6 +183,7 @@ def process_and_clean_data(
 
                 nan_stats_list.append(
                     {
+                        "eye_tracker": "EyeLink 1000 Plus",
                         "participant_id": participant_id,
                         "condition": condition,
                         "total_rows": total_rows,
@@ -191,29 +193,6 @@ def process_and_clean_data(
                         ),
                     }
                 )
-
-    # Add overall statistics
-    overall_nan_rows = time_trimmed_df[data_columns].isna().any(axis=1).sum()
-    overall_total_rows = len(time_trimmed_df)
-
-    nan_stats_list.append(
-        {
-            "participant_id": "ALL",
-            "condition": "ALL",
-            "total_rows": overall_total_rows,
-            "nan_rows": overall_nan_rows,
-            "nan_percentage": (
-                (overall_nan_rows / overall_total_rows * 100)
-                if overall_total_rows > 0
-                else 0
-            ),
-        }
-    )
-
-    print(
-        f"OVERALL: {overall_nan_rows} NaN rows out of {overall_total_rows} rows "
-        f"({(overall_nan_rows / overall_total_rows * 100):.2f}%)"
-    )
 
     # Create NaN statistics dataframe
     nan_stats_df = pd.DataFrame(nan_stats_list)
@@ -296,7 +275,7 @@ def main():
     for participant_id in tqdm(
         cleaned_data["participant_id"].unique(), desc="Saving data"
     ):
-        participant_dir = output_dir / f"{participant_id}/eyelink1000plus/"
+        participant_dir = output_dir / f"{participant_id}/EyeLink 1000 Plus/"
         os.makedirs(participant_dir, exist_ok=True)
 
         participant_data = cleaned_data[
