@@ -5,7 +5,7 @@ Last Modified: 2024/02/17
 Description: This script converts eye-tracking coordinates to visual angles and
              performs data cleaning. The script calculates scaling factors based on physical targets'
              dimensions, transforms pixel coordinates to visual angles, and performs outlier removal
-             using time-based trimming, distance thresholds, and z-score filtering. 
+             using time-based trimming, distance thresholds, and z-score filtering.
 
 Input structure:
  data/
@@ -83,7 +83,7 @@ def convert_to_visual_angles(df):
     """
     Convert adjusted gaze and target coordinates to visual angles using scaling approach
     """
-    
+
     # Initialize lists for results
     gaze_angles_x = []
     gaze_angles_y = []
@@ -91,9 +91,9 @@ def convert_to_visual_angles(df):
     target_angles_y = []
 
     for idx, row in df.iterrows():
-        
+
         eye_tracker = row["eye_tracker"]
-        
+
         # Calculate scaling factor for this frame
         if eye_tracker == "Pupil Core":
             if (
@@ -119,7 +119,7 @@ def convert_to_visual_angles(df):
             print("Undifined eye tracker")
 
         scale = calculate_scaling_factor(row, real_width_mm, real_height_mm)  # mm/pixel
-        
+
         # Find screen center
         center_x, center_y = row["target_x"], row["target_y"]
 
@@ -197,9 +197,7 @@ def clean_trials(
         valid_mask = pd.Series(True, index=distance_filtered.index)
 
         for col in columns_to_check:
-            z_scores = np.abs(
-                stats.zscore(distance_filtered[col], nan_policy="omit")
-            )
+            z_scores = np.abs(stats.zscore(distance_filtered[col], nan_policy="omit"))
             valid_mask &= z_scores < z_threshold
 
         cleaned_trial_data = distance_filtered[valid_mask]
@@ -210,7 +208,7 @@ def clean_trials(
 
 def main():
 
-    dataset_dir_path = Path(__file__).resolve().parent.parent/ "data"
+    dataset_dir_path = Path(__file__).resolve().parent.parent / "data"
 
     # Get all eye trackers data directories
     eye_trackers = ["Pupil Core", "SMI ETG", "Pupil Neon", "Tobii Glasses 2"]
@@ -218,22 +216,23 @@ def main():
     for participant_dir in dataset_dir_path.iterdir():
         if participant_dir.is_dir():
             for eye_tracker in eye_trackers:
-                
-                data_path = participant_dir / eye_tracker 
+
+                data_path = participant_dir / eye_tracker
                 if data_path.exists():
                     data_dirs.append(data_path)
     data_dirs[:3]
 
     for data_dir in tqdm(data_dirs[:]):
-        
+
         df = pd.read_csv(data_dir / "stabilized.csv")
-        distance_df =  pd.read_csv(data_dir / "distance.csv")
-        if len(df) == len(distance_df) and df['frame'].equals(distance_df['frame']):
-            df['distance_average'] = distance_df['distance_average']
+        distance_df = pd.read_csv(data_dir / "distance.csv")
+        if len(df) == len(distance_df) and df["frame"].equals(distance_df["frame"]):
+            df["distance_average"] = distance_df["distance_average"]
         df = convert_to_visual_angles(df)
-        
+
         clean_df = clean_trials(df)
-        clean_df.to_csv(data_dir / 'data.csv', index=False)
+        clean_df.to_csv(data_dir / "data.csv", index=False)
+
 
 if __name__ == "__main__":
     main()

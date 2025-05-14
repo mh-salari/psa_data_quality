@@ -3,12 +3,12 @@ Author:       Mohammadhossein Salari
 Email:        mohammadhossein.salari@gmail.com
 Last Modified: 2024/02/17
 Description: This script that converts head mounted eye-trackers datato glassesTools
-             common format. 
-              
-             The script expects the input directory to be from one eye tracker 
+             common format.
+
+             The script expects the input directory to be from one eye tracker
              (e.g., Pupil Labs, Tobii, etc.) containing participant subdirectories.
 
-             To use this script, you must install the glassesTools library from 
+             To use this script, you must install the glassesTools library from
              https://github.com/dcnieho/glassesTools/.
 
 Input structure:

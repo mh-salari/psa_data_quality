@@ -4,7 +4,7 @@ Email:        mohammadhossein.salari@gmail.com
 Last Modified: 2024/02/17
 
 Description: This script that processes and cleans EyeLink 1000 Plus eye-tracking data.
-             The script loads raw data from an Excel file, converts it to a common format, extracts 
+             The script loads raw data from an Excel file, converts it to a common format, extracts
              5-second windows from each trial, and applies multiple cleaning steps including NaN removal,
              time trimming, distance filtering, and z-score outlier removal.
              Pupil measurements are converted from area to diameter (mm) using standard reference values.
