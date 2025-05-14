@@ -109,7 +109,6 @@ def undistort_dataframe(df, camera_cal):
 
 def main():
     dataset_dir_path = Path(__file__).resolve().parent.parent/ "data"
-    print(dataset_dir_path)
 
     # Get all eye trackers data directories
     eye_trackers = ["Pupil Core", "SMI ETG", "Pupil Neon", "Tobii Glasses 2"]
