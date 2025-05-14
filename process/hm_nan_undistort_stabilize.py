@@ -2,10 +2,10 @@
 Author:       Mohammadhossein Salari
 Email:        mohammadhossein.salari@gmail.com
 Last Modified: 2024/05/14
-Description:  The script undistorts camera points using calibration parameters, merges 
-              target and gaze data, filters out records with missing gaze data, and compensate
-              for head movments by aligning targets.
-              Statistics about missing data (NaNs) are collected for each participant and condition.
+Description: The script undistorts camera points using calibration parameters, merges 
+             target and gaze data, filters out records with missing gaze data, and compensate
+             for head movments by aligning targets.
+             Statistics about missing data (NaNs) are collected for each participant and condition.
 
 Input structure:
  data/

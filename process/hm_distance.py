@@ -2,8 +2,8 @@
 Author:       Mohammadhossein Salari
 Email:        mohammadhossein.salari@gmail.com
 Last Modified: 2024/05/14
-Description:  A Python script that calculates viewing distances for head-mounted eye-tracker
-              data using camera calibration parameters and known physical dimensions of targets.
+Description: This script that calculates viewing distances for head-mounted eye-tracker
+             data using camera calibration parameters and known physical dimensions of targets.
               
 Input structure:
  data/
