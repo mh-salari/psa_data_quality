@@ -58,7 +58,7 @@ for (tracker in trackers) {
 # Perform statistical tests
 stat_results <- data.frame()
 
-# For each eye tracker, compare dilated vs constricted conditions
+# For each eye tracker, compare dark vs bright conditions
 for (tracker in unique(aggregated_data$eye_tracker)) {
   # Subset data for this eye tracker
   tracker_data <- aggregated_data[aggregated_data$eye_tracker == tracker, ]
@@ -70,45 +70,45 @@ for (tracker in unique(aggregated_data$eye_tracker)) {
       names_from = trial_condition,
       values_from = accuracy
     ) %>%
-    filter(!is.na(dilated) & !is.na(constricted))
+    filter(!is.na(dark) & !is.na(bright))
   
   if (nrow(paired_data) >= 3) {  # Enough paired samples for a paired test
     # Paired t-test
-    t_test_result <- t.test(paired_data$dilated, paired_data$constricted, paired = TRUE)
+    t_test_result <- t.test(paired_data$dark, paired_data$bright, paired = TRUE)
     test_type <- "Paired t-test"
     
     # Calculate Cohen's d for paired data
-    diff <- paired_data$dilated - paired_data$constricted
+    diff <- paired_data$dark - paired_data$bright
     cohens_d <- mean(diff) / sd(diff)
     n_samples <- nrow(paired_data)
     
     # Calculate descriptive statistics
-    dilated_mean <- mean(paired_data$dilated)
-    dilated_sd <- sd(paired_data$dilated)
-    constricted_mean <- mean(paired_data$constricted)
-    constricted_sd <- sd(paired_data$constricted)
+    dark_mean <- mean(paired_data$dark)
+    dark_sd <- sd(paired_data$dark)
+    bright_mean <- mean(paired_data$bright)
+    bright_sd <- sd(paired_data$bright)
   } else {
     # If not enough paired data, fall back to independent samples test
-    dilated_data <- tracker_data$accuracy[tracker_data$trial_condition == "dilated"]
-    constricted_data <- tracker_data$accuracy[tracker_data$trial_condition == "constricted"]
+    dark_data <- tracker_data$accuracy[tracker_data$trial_condition == "dark"]
+    bright_data <- tracker_data$accuracy[tracker_data$trial_condition == "bright"]
     
     # Independent t-test
-    t_test_result <- t.test(dilated_data, constricted_data, paired = FALSE, var.equal = FALSE)
+    t_test_result <- t.test(dark_data, bright_data, paired = FALSE, var.equal = FALSE)
     test_type <- "Independent t-test"
     
     # Cohen's d for independent samples
-    pooled_sd <- sqrt(((length(dilated_data)-1)*var(dilated_data) + 
-                         (length(constricted_data)-1)*var(constricted_data)) / 
-                        (length(dilated_data) + length(constricted_data) - 2))
+    pooled_sd <- sqrt(((length(dark_data)-1)*var(dark_data) + 
+                         (length(bright_data)-1)*var(bright_data)) / 
+                        (length(dark_data) + length(bright_data) - 2))
     
-    cohens_d <- (mean(dilated_data) - mean(constricted_data)) / pooled_sd
-    n_samples <- paste(length(dilated_data), "&", length(constricted_data))
+    cohens_d <- (mean(dark_data) - mean(bright_data)) / pooled_sd
+    n_samples <- paste(length(dark_data), "&", length(bright_data))
     
     # Calculate descriptive statistics
-    dilated_mean <- mean(dilated_data)
-    dilated_sd <- sd(dilated_data)
-    constricted_mean <- mean(constricted_data)
-    constricted_sd <- sd(constricted_data)
+    dark_mean <- mean(dark_data)
+    dark_sd <- sd(dark_data)
+    bright_mean <- mean(bright_data)
+    bright_sd <- sd(bright_data)
   }
   
   # Interpret effect size
@@ -124,10 +124,10 @@ for (tracker in unique(aggregated_data$eye_tracker)) {
     eye_tracker = tracker,
     test_type = test_type,
     n_samples = ifelse(is.character(n_samples), n_samples, as.character(n_samples)),
-    dilated_mean = dilated_mean,
-    dilated_sd = dilated_sd,
-    constricted_mean = constricted_mean,
-    constricted_sd = constricted_sd,
+    dark_mean = dark_mean,
+    dark_sd = dark_sd,
+    bright_mean = bright_mean,
+    bright_sd = bright_sd,
     t_statistic = t_test_result$statistic,
     df = t_test_result$parameter,
     p_value = t_test_result$p.value,
@@ -143,17 +143,17 @@ for (tracker in unique(aggregated_data$eye_tracker)) {
 
 # Print statistical results in a structured format
 cat("\n===============================================================\n")
-cat("Statistical Analysis of Accuracy Differences (dilated vs. constricted)\n")
+cat("Statistical Analysis of Accuracy Differences (dark vs. bright)\n")
 cat("===============================================================\n")
 
 for (i in 1:nrow(stat_results)) {
   cat("\nEye Tracker:", stat_results$eye_tracker[i], "\n")
   cat("Test type:", stat_results$test_type[i], "\n")
   cat("Sample size:", stat_results$n_samples[i], "\n")
-  cat("dilated condition: M =", round(stat_results$dilated_mean[i], 3), 
-      "(SD =", round(stat_results$dilated_sd[i], 3), ")\n")
-  cat("constricted condition: M =", round(stat_results$constricted_mean[i], 3), 
-      "(SD =", round(stat_results$constricted_sd[i], 3), ")\n")
+  cat("dark condition: M =", round(stat_results$dark_mean[i], 3), 
+      "(SD =", round(stat_results$dark_sd[i], 3), ")\n")
+  cat("bright condition: M =", round(stat_results$bright_mean[i], 3), 
+      "(SD =", round(stat_results$bright_sd[i], 3), ")\n")
   cat("t-statistic:", round(stat_results$t_statistic[i], 3), 
       "(df =", round(stat_results$df[i], 1), ")\n")
   cat("p-value:", format.pval(stat_results$p_value[i], digits = 3), 
@@ -173,15 +173,15 @@ overall_stats <- aggregated_data %>%
   )
 
 # Perform overall t-test (independent samples, as we're combining across different eye trackers)
-dilated_overall <- aggregated_data$accuracy[aggregated_data$trial_condition == "dilated"]
-constricted_overall <- aggregated_data$accuracy[aggregated_data$trial_condition == "constricted"]
-overall_t_test <- t.test(dilated_overall, constricted_overall, var.equal = FALSE)
+dark_overall <- aggregated_data$accuracy[aggregated_data$trial_condition == "dark"]
+bright_overall <- aggregated_data$accuracy[aggregated_data$trial_condition == "bright"]
+overall_t_test <- t.test(dark_overall, bright_overall, var.equal = FALSE)
 
 # Calculate overall Cohen's d
-pooled_sd_overall <- sqrt(((length(dilated_overall)-1)*var(dilated_overall) + 
-                             (length(constricted_overall)-1)*var(constricted_overall)) / 
-                            (length(dilated_overall) + length(constricted_overall) - 2))
-cohens_d_overall <- (mean(dilated_overall) - mean(constricted_overall)) / pooled_sd_overall
+pooled_sd_overall <- sqrt(((length(dark_overall)-1)*var(dark_overall) + 
+                             (length(bright_overall)-1)*var(bright_overall)) / 
+                            (length(dark_overall) + length(bright_overall) - 2))
+cohens_d_overall <- (mean(dark_overall) - mean(bright_overall)) / pooled_sd_overall
 
 # Interpret effect size
 effect_overall <- case_when(
@@ -195,12 +195,12 @@ effect_overall <- case_when(
 cat("\n\n===============================================================\n")
 cat("Overall Statistical Analysis (All Eye Trackers Combined)\n")
 cat("===============================================================\n")
-cat("dilated condition: M =", round(overall_stats$mean[overall_stats$trial_condition == "dilated"], 3), 
-    "(SD =", round(overall_stats$sd[overall_stats$trial_condition == "dilated"], 3), 
-    ", n =", overall_stats$n[overall_stats$trial_condition == "dilated"], ")\n")
-cat("constricted condition: M =", round(overall_stats$mean[overall_stats$trial_condition == "constricted"], 3), 
-    "(SD =", round(overall_stats$sd[overall_stats$trial_condition == "constricted"], 3), 
-    ", n =", overall_stats$n[overall_stats$trial_condition == "constricted"], ")\n")
+cat("dark condition: M =", round(overall_stats$mean[overall_stats$trial_condition == "dark"], 3), 
+    "(SD =", round(overall_stats$sd[overall_stats$trial_condition == "dark"], 3), 
+    ", n =", overall_stats$n[overall_stats$trial_condition == "dark"], ")\n")
+cat("bright condition: M =", round(overall_stats$mean[overall_stats$trial_condition == "bright"], 3), 
+    "(SD =", round(overall_stats$sd[overall_stats$trial_condition == "bright"], 3), 
+    ", n =", overall_stats$n[overall_stats$trial_condition == "bright"], ")\n")
 cat("t-statistic:", round(overall_t_test$statistic, 3), 
     "(df =", round(overall_t_test$parameter, 1), ")\n")
 cat("p-value:", format.pval(overall_t_test$p.value, digits = 3), 
@@ -213,8 +213,8 @@ cat("Cohen's d:", round(cohens_d_overall, 3),
 formatted_table <- stat_results %>%
   mutate(
     tracker = eye_tracker,
-    condition = paste0("dilated: ", sprintf("%.3f (%.3f)", dilated_mean, dilated_sd), 
-                       "\nconstricted: ", sprintf("%.3f (%.3f)", constricted_mean, constricted_sd)),
+    condition = paste0("dark: ", sprintf("%.3f (%.3f)", dark_mean, dark_sd), 
+                       "\nbright: ", sprintf("%.3f (%.3f)", bright_mean, bright_sd)),
     test_results = sprintf("t(%0.1f) = %0.2f, %s", 
                            df, 
                            t_statistic, 

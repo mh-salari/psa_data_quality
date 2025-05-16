@@ -28,7 +28,7 @@ for (eye_tracker in unique(df$eye_tracker)) {
   for (participant in unique(tracker_df$participant_id)) {
     part_data <- tracker_df[tracker_df$participant_id == participant, ]
     
-    for (trial_condition in c('dilated', 'constricted')) {
+    for (trial_condition in c('dark', 'bright')) {
       condition_data <- part_data[part_data$trial_condition == trial_condition, ]
       
       if (nrow(condition_data) > 0) {
@@ -57,8 +57,8 @@ summary_stats <- result_df %>%
   )
 
 # Define colors
-dilated_color <- "#2C3E50"    
-constricted_color <- "#F4D03F"  
+dark_color <- "#2C3E50"    
+bright_color <- "#F4D03F"  
 
 # Create publication-quality plot 
 p <- ggplot(result_df, aes(x = eye_tracker, y = mean_pupil, fill = trial_condition)) +
@@ -85,17 +85,17 @@ p <- ggplot(result_df, aes(x = eye_tracker, y = mean_pupil, fill = trial_conditi
                               color = "black", bg.colour = "white", bg.r = 0.2) +
   
   # Set professional color scheme
-  scale_fill_manual(values = c("dilated" = dilated_color, "constricted" = constricted_color),
-                    breaks = c("dilated", "constricted"),  # Explicitly set the order
-                    labels = c("Dilated Condition", "Constricted Condition")) +
-  scale_color_manual(values = c("dilated" = dilated_color, "constricted" = constricted_color),
-                     breaks = c("dilated", "constricted"),  # Explicitly set the order
-                     labels = c("Dilated Condition", "Constricted Condition")) +
+  scale_fill_manual(values = c("dark" = dark_color, "bright" = bright_color),
+                    breaks = c("dark", "bright"),  # Explicitly set the order
+                    labels = c("Dark Condition", "Bright Condition")) +
+  scale_color_manual(values = c("dark" = dark_color, "bright" = bright_color),
+                     breaks = c("dark", "bright"),  # Explicitly set the order
+                     labels = c("Dark Condition", "Bright Condition")) +
   
   # Clean, concise labeling with title and subtitle
   labs(
        # title = "Pupil Size Comparison Across Eye Trackers",
-       # subtitle = "dilated vs. constricted Conditions",
+       # subtitle = "dark vs. bright Conditions",
        x = "",
        y = "Pupil Size (mm)") +
   
@@ -129,10 +129,8 @@ p <- ggplot(result_df, aes(x = eye_tracker, y = mean_pupil, fill = trial_conditi
     panel.background = element_rect(fill = "transparent", color = NA)
   )
 
-
-
 # Display the plot
 print(p)
 
 # Save the plot
-ggsave("./output/pupil_size.png", plot = p, width = 10, height = 7, dpi = 300, bg = "transparent")
+ggsave("./output/pupil_size.png", plot = p, width = 10, height = 7, dpi = 300, bg = "white")

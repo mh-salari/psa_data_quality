@@ -8,19 +8,25 @@ library(shadowtext)  # For text with borders - install if needed: install.packag
 path <-  file.path("..", "quality_metrics", "std.csv")
 std_df <- read_csv(path, show_col_types = FALSE)
 
-# Define colors
-dilated_color <- "#2C3E50"    
-constricted_color <- "#F4D03F"  
+# Aggregate data by participant, eye tracker, and trial condition
+# This calculates the mean accuracy across all trials of the same condition
+aggregated_df <- std_df %>%
+  group_by(participant_id, eye_tracker, trial_condition) %>%
+  summarize(std = mean(std, na.rm = TRUE), .groups = "drop")
 
-# Calculate differences between dilated and constricted
-delta_df <- std_df %>%
+# Define colors
+dark_color <- "#2C3E50"    
+bright_color <- "#F4D03F"  
+
+# Calculate differences between dark and bright
+delta_df <- aggregated_df %>%  # Using aggregated data
   group_by(eye_tracker, trial_condition) %>%
   summarize(std = mean(std, na.rm = TRUE), .groups = "drop") %>%
   pivot_wider(names_from = trial_condition, values_from = std) %>%
-  mutate(delta = dilated - constricted)
+  mutate(delta = dark - bright)
 
 # Calculate summary statistics for labels
-summary_stats <- std_df %>%
+summary_stats <- aggregated_df %>%  # Using aggregated data
   group_by(eye_tracker, trial_condition) %>%
   summarize(
     mean_value = mean(std, na.rm = TRUE),
@@ -56,17 +62,17 @@ p <- ggplot(std_df, aes(x = eye_tracker, y = std, fill = trial_condition)) +
                             color = "black", bg.colour = "white", bg.r = 0.2) +
   
   # Set professional color scheme
-  scale_fill_manual(values = c("dilated" = dilated_color, "constricted" = constricted_color),
-                    breaks = c("dilated", "constricted"),  # Explicitly set the order
-                    labels = c("Dilated Condition", "Constricted Condition")) +
-  scale_color_manual(values = c("dilated" = dilated_color, "constricted" = constricted_color),
-                     breaks = c("dilated", "constricted"),  # Explicitly set the order
-                     labels = c("Dilated Condition", "Constricted Condition")) +
+  scale_fill_manual(values = c("dark" = dark_color, "bright" = bright_color),
+                    breaks = c("dark", "bright"),  # Explicitly set the order
+                    labels = c("Dark Condition", "Bright Condition")) +
+  scale_color_manual(values = c("dark" = dark_color, "bright" = bright_color),
+                     breaks = c("dark", "bright"),  # Explicitly set the order
+                     labels = c("Dark Condition", "Bright Condition")) +
   
   # Clean, concise labeling
   labs(
        # title = "Comparison of Gaze std Across Eye Trackers",
-       # subtitle = "dilated vs. constricted Conditions",
+       # subtitle = "dark vs. bright Conditions",
        x = "",
        y = "STD (deg)") +
   
@@ -109,4 +115,4 @@ p <- ggplot(std_df, aes(x = eye_tracker, y = std, fill = trial_condition)) +
 print(p)
 
 # Save the plot
-ggsave("./output/std.png", plot = p, width = 10, height = 7, dpi = 300, bg = "transparent")
+ggsave("./output/std.png", plot = p, width = 10, height = 7, dpi = 300, bg = "white")

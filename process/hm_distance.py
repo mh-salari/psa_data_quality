@@ -61,7 +61,6 @@ def calculate_euclidean_distance(x1, y1, x2, y2):
 
 
 def calculate_distances(camera_cal, real_width_mm, real_height_mm, row):
-
     top_left = [row["top_left_x"], row["top_left_y"]]
     top_right = [row["top_right_x"], row["top_right_y"]]
     bottom_left = [row["bottom_left_x"], row["bottom_left_y"]]
@@ -90,7 +89,6 @@ def calculate_distances(camera_cal, real_width_mm, real_height_mm, row):
 
 
 def main():
-
     dataset_dir_path = Path(__file__).resolve().parent.parent / "data"
 
     # Get all eye trackers data directories
@@ -99,7 +97,6 @@ def main():
     for participant_dir in dataset_dir_path.iterdir():
         if participant_dir.is_dir():
             for eye_tracker in eye_trackers:
-
                 data_path = participant_dir / eye_tracker
                 if data_path.exists():
                     data_dirs.append(data_path)
@@ -117,7 +114,7 @@ def main():
             if eye_tracker == "Pupil Core":
                 if (
                     participant_id in [319, 460, 503, 772, 844]
-                    and row["trial_condition"] == "constricted"
+                    and row["trial_condition"] == "bright"
                 ):
                     real_width_mm = 476.64
                     real_height_mm = 268.11
@@ -125,7 +122,7 @@ def main():
                     real_width_mm = 346.31
                     real_height_mm = 137.78
             elif eye_tracker == "Tobii Glasses 2":
-                if row["trial_condition"] == "dilated":
+                if row["trial_condition"] == "dark":
                     real_width_mm = 346.31
                     real_height_mm = 137.78
                 else:

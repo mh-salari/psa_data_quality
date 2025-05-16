@@ -66,7 +66,7 @@ def load_and_preprocess_data(data_path):
     processed_df["participant_id"] = raw_df["RECORDING_SESSION_LABEL"]
     processed_df["trial_number"] = raw_df["TRIAL_INDEX"]
     processed_df["trial_condition"] = [
-        "dilated" if idx % 2 == 1 else "constricted" for idx in raw_df["TRIAL_INDEX"]
+        "dark" if idx % 2 == 1 else "bright" for idx in raw_df["TRIAL_INDEX"]
     ]
 
     # Set spatial coordinates and angles
@@ -240,7 +240,6 @@ def process_and_clean_data(
 
 
 def main():
-
     project_dir_path = Path(__file__).resolve().parent.parent
     data_path = (
         project_dir_path / "recordings/eyelink1000plus/Output/all_participants.xls"

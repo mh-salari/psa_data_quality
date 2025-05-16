@@ -50,7 +50,7 @@ p <- ggplot(apparent_gaze_shift_df, aes(x = eye_tracker, y = apparent_gaze_shift
                             color = "black", bg.colour = "white", bg.r = 0.2) +
   
   # Clean, concise labeling
-  labs(title = "Apparent Gaze Shift",
+  labs(#title = "Apparent Gaze Shift",
        x = "",
        y = "Apparent Gaze Shift (deg)") +
   
@@ -65,7 +65,7 @@ p <- ggplot(apparent_gaze_shift_df, aes(x = eye_tracker, y = apparent_gaze_shift
   theme_minimal() +
   theme(
     # Text styling
-    plot.title = element_text(face = "bold", size = 14, hjust = 0.5),
+    #plot.title = element_text(face = "bold", size = 14, hjust = 0.5),
     axis.title.y = element_text(size = 12),
     axis.title.x = element_blank(),
     axis.text = element_text(size = 10, color = "black"),

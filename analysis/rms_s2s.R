@@ -8,12 +8,18 @@ library(shadowtext)  # For text with borders - install if needed: install.packag
 path <-  file.path("..", "quality_metrics", "rms_s2s.csv")
 rms_s2s_df <- read_csv(path, show_col_types = FALSE)
 
+# Aggregate data by participant, eye tracker, and trial condition
+# This calculates the mean accuracy across all trials of the same condition
+aggregated_df <- rms_s2s_df %>%
+  group_by(participant_id, eye_tracker, trial_condition) %>%
+  summarize(rms_s2s = mean(rms_s2s, na.rm = TRUE), .groups = "drop")
+
 # Define colors
-dilated_color <- "#2C3E50"    
-constricted_color <- "#F4D03F"  
+dark_color <- "#2C3E50"    
+bright_color <- "#F4D03F"  
 
 # Calculate summary statistics for labels
-summary_stats <- rms_s2s_df %>%
+summary_stats <- aggregated_df %>%  # Using aggregated data
   group_by(eye_tracker, trial_condition) %>%
   summarize(
     mean_rms = mean(rms_s2s, na.rm = TRUE),
@@ -21,12 +27,12 @@ summary_stats <- rms_s2s_df %>%
     .groups = "drop"
   )
 
-# Calculate differences between dilated and constricted
-delta_df <- rms_s2s_df %>%
+# Calculate differences between dark and bright
+delta_df <- aggregated_df %>%  # Using aggregated data
   group_by(eye_tracker, trial_condition) %>%
   summarize(rms_s2s = mean(rms_s2s, na.rm = TRUE), .groups = "drop") %>%
   pivot_wider(names_from = trial_condition, values_from = rms_s2s) %>%
-  mutate(delta = dilated - constricted)
+  mutate(delta = dark - bright)
 
 # Get maximum y value for appropriate scaling
 max_rms_s2s <- max(rms_s2s_df$rms_s2s, na.rm = TRUE)
@@ -56,19 +62,19 @@ p <- ggplot(rms_s2s_df, aes(x = eye_tracker, y = rms_s2s, fill = trial_condition
                               color = "black", bg.colour = "white", bg.r = 0.2) +
   
   # Set professional color scheme
-  scale_fill_manual(values = c("dilated" = dilated_color, "constricted" = constricted_color),
-                    breaks = c("dilated", "constricted"),  # Explicitly set the order
-                    labels = c("Dilated Condition", "Constricted Condition")) +
-  scale_color_manual(values = c("dilated" = dilated_color, "constricted" = constricted_color),
-                     breaks = c("dilated", "constricted"),  # Explicitly set the order
-                     labels = c("Dilated Condition", "Constricted Condition")) +
+  scale_fill_manual(values = c("dark" = dark_color, "bright" = bright_color),
+                    breaks = c("dark", "bright"),  # Explicitly set the order
+                    labels = c("dark Condition", "bright Condition")) +
+  scale_color_manual(values = c("dark" = dark_color, "bright" = bright_color),
+                     breaks = c("dark", "bright"),  # Explicitly set the order
+                     labels = c("dark Condition", "bright Condition")) +
   
   # Clean, concise labeling
   labs(
-       # title = "Comparison of RMS-S2S Across Eye Trackers",
-       # subtitle = "dilated vs. constricted Conditions",
-       x = "",
-       y = "RMS-S2S (deg)") +
+    # title = "Comparison of RMS-S2S Across Eye Trackers",
+    # subtitle = "dark vs. bright Conditions",
+    x = "",
+    y = "RMS-S2S (deg)") +
   
   # Adjust y-axis and add horizontal guide lines
   scale_y_continuous(limits = c(0, max_rms_s2s * 1.2), # Increased to make room for labels
@@ -109,4 +115,4 @@ p <- ggplot(rms_s2s_df, aes(x = eye_tracker, y = rms_s2s, fill = trial_condition
 print(p)
 
 # Save the plot
-ggsave("./output/rms_s2s.png", plot = p, width = 10, height = 7, dpi = 300, bg = "transparent")
+ggsave("./output/rms_s2s.png", plot = p, width = 10, height = 7, dpi = 300, bg = "white")

@@ -113,7 +113,6 @@ def main():
     for participant_dir in dataset_dir_path.iterdir():
         if participant_dir.is_dir():
             for eye_tracker in eye_trackers:
-
                 data_path = participant_dir / eye_tracker
                 if data_path.exists():
                     data_dirs.append(data_path)
@@ -143,7 +142,6 @@ def main():
     ]
 
     for data_dir in tqdm(data_dirs[:]):
-
         eye_tracker = data_dir.name
         participant_id = data_dir.parent.name
 
@@ -165,50 +163,50 @@ def main():
         merged_df = merged_df[columns_to_keep]
 
         # Split by condition
-        dilated_df = merged_df[merged_df["trial_condition"] == "dilated"]
-        constricted_df = merged_df[merged_df["trial_condition"] == "constricted"]
+        dark_df = merged_df[merged_df["trial_condition"] == "dark"]
+        bright_df = merged_df[merged_df["trial_condition"] == "bright"]
 
-        # Process dilated data
-        dilated_count = dilated_df.shape[0]
-        dilated_missing_mask = (
-            dilated_df[["gaze_pos_vid_x", "gaze_pos_vid_y"]].isna().any(axis=1)
+        # Process dark data
+        dark_count = dark_df.shape[0]
+        dark_missing_mask = (
+            dark_df[["gaze_pos_vid_x", "gaze_pos_vid_y"]].isna().any(axis=1)
         )
-        dilated_nan_count = dilated_missing_mask.sum()
+        dark_nan_count = dark_missing_mask.sum()
 
-        # Save dilated condition NaN statistics
+        # Save dark condition NaN statistics
         nan_stats.append(
             {
                 "eye_tracker": eye_tracker,
                 "participant_id": participant_id,
-                "condition": "dilated",
-                "total_rows": dilated_count,
-                "nan_rows": dilated_nan_count,
+                "condition": "dark",
+                "total_rows": dark_count,
+                "nan_rows": dark_nan_count,
             }
         )
 
-        # Process constricted data
-        constricted_count = constricted_df.shape[0]
-        constricted_missing_mask = (
-            constricted_df[["gaze_pos_vid_x", "gaze_pos_vid_y"]].isna().any(axis=1)
+        # Process bright data
+        bright_count = bright_df.shape[0]
+        bright_missing_mask = (
+            bright_df[["gaze_pos_vid_x", "gaze_pos_vid_y"]].isna().any(axis=1)
         )
-        constricted_nan_count = constricted_missing_mask.sum()
+        bright_nan_count = bright_missing_mask.sum()
 
-        # Save constricted condition NaN statistics
+        # Save bright condition NaN statistics
         nan_stats.append(
             {
                 "eye_tracker": eye_tracker,
                 "participant_id": participant_id,
-                "condition": "constricted",
-                "total_rows": constricted_count,
-                "nan_rows": constricted_nan_count,
+                "condition": "bright",
+                "total_rows": bright_count,
+                "nan_rows": bright_nan_count,
             }
         )
 
         # Combine cleaned data
         df = pd.concat(
             [
-                dilated_df[~dilated_missing_mask],
-                constricted_df[~constricted_missing_mask],
+                dark_df[~dark_missing_mask],
+                bright_df[~bright_missing_mask],
             ]
         )
         df = df.sort_values(by="frame")
