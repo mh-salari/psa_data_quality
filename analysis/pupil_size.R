@@ -94,10 +94,10 @@ p <- ggplot(result_df, aes(x = eye_tracker, y = mean_pupil, fill = trial_conditi
   
   # Clean, concise labeling with title and subtitle
   labs(
-       # title = "Pupil Size Comparison Across Eye Trackers",
+       # title = "Pupil Dize Comparison Across Eye Trackers",
        # subtitle = "dark vs. bright Conditions",
        x = "",
-       y = "Pupil Size (mm)") +
+       y = "Pupil Diameter (mm)") +
   
   # Adjust y-axis and add horizontal guide lines
   theme(panel.grid.major.y = element_line(color = "#CCCCCC", size = 0.2)) +
