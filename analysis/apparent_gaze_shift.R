@@ -83,4 +83,4 @@ p <- ggplot(apparent_gaze_shift_df, aes(x = eye_tracker, y = apparent_gaze_shift
 print(p)
 
 # Save with transparent background
-ggsave("./output/apparent_gaze_shift.png", plot = p, width = 8, height = 6, dpi = 300, bg = "transparent")
+ggsave("./output/apparent_gaze_shift.png", plot = p, width = 8, height = 6, dpi = 300, bg = "white")

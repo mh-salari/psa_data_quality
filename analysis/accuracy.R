@@ -75,8 +75,8 @@ p <- ggplot(aggregated_df, aes(x = eye_tracker, y = accuracy, fill = trial_condi
     y = " Accuracy (deg)") +
   
   # Adjust y-axis and add horizontal guide lines
-  scale_y_continuous(limits = c(0, 10 * 1.2), # Increased to make room for labels
-                     breaks = seq(0, 10, 2),
+  scale_y_continuous(limits = c(0, 8), 
+                     breaks = seq(0, 8, 2),
                      expand = c(0, 0)) +
   
   # Add horizontal guide lines for easier reading
