@@ -89,11 +89,11 @@ p <- ggplot(participant_long,
   # Add rotated text labels for mean±std with custom positioning
   geom_shadowtext(data = summary_stats, 
                   aes(x = text_position, 
-                      y = ifelse(eye_tracker == "EyeLink 1000 Plus", mean_rms_s2s + 0.03, mean_rms_s2s), 
+                      y = ifelse(eye_tracker == "EyeLink 1000 Plus", mean_rms_s2s + 0.07, mean_rms_s2s), 
                       label = mean_label),
                   vjust = 0.5,
                   hjust = 0.5,
-                  size = 3,
+                  size = 4.5,  # Increased from 3 to 4.5
                   angle = 90,
                   color = "black",
                   bg.color = "white",
@@ -122,15 +122,16 @@ p <- ggplot(participant_long,
     color = ""
   ) +
   
-  # Custom theme
+  # Custom theme with increased font sizes
   theme_minimal() +
   theme(
-    strip.text = element_text(size = 14, face = "plain", margin = margin(b = 10)),
-    axis.title.y = element_text(size = 13, margin = margin(r = 10)),
-    axis.text = element_text(size = 12),
-    axis.text.x = element_text(size = 13, face = "plain", color = "black"),
+    strip.text = element_text(size = 16, face = "plain", margin = margin(b = 10)),
+    axis.title.y = element_text(size = 16, margin = margin(r = 10)),
+    axis.text = element_text(size = 14),
+    axis.text.x = element_text(size = 14, face = "plain", color = "black"),
     legend.position = "bottom",
-    legend.text = element_text(size = 12),
+    legend.text = element_text(size = 14),
+    legend.title = element_text(size = 16),
     legend.margin = margin(t = 15),
     panel.grid.major.y = element_line(color = "#EEEEEE", size = 0.3),
     panel.grid.minor = element_blank(),

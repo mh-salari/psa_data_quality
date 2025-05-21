@@ -104,8 +104,8 @@ p <- ggplot(participant_long,
                   aes(x = text_position, y = mean_pupil, label = mean_label),
                   vjust = 0.5,  # Center vertically on the triangle
                   hjust = 0.5,  # Center text on its position
-                  size = 3,
-                  angle = 90,  # Rotated 90 degrees
+                  size = 4.5,   # Increased from 3 to 4.5
+                  angle = 90,   # Rotated 90 degrees
                   color = "black",
                   bg.color = "white",
                   bg.r = 0.15) +
@@ -133,15 +133,16 @@ p <- ggplot(participant_long,
     color = ""
   ) +
   
-  # Custom theme
+  # Custom theme with increased font sizes
   theme_minimal() +
   theme(
-    strip.text = element_text(size = 14, face = "plain", margin = margin(b = 10)),
-    axis.title.y = element_text(size = 13, margin = margin(r = 10)),
-    axis.text = element_text(size = 12),
-    axis.text.x = element_text(size = 13, face = "plain", color = "black"),
+    strip.text = element_text(size = 16, face = "plain", margin = margin(b = 10)),
+    axis.title.y = element_text(size = 16, margin = margin(r = 10)),
+    axis.text = element_text(size = 14),
+    axis.text.x = element_text(size = 14, face = "plain", color = "black"),
     legend.position = "bottom",
-    legend.text = element_text(size = 12),
+    legend.text = element_text(size = 14),
+    legend.title = element_text(size = 16),
     legend.margin = margin(t = 15),
     panel.grid.major.y = element_line(color = "#EEEEEE", size = 0.3),
     panel.grid.minor = element_blank(),
