@@ -58,6 +58,9 @@ for (tracker in trackers) {
 # Perform statistical tests
 stat_results <- data.frame()
 
+# Count the number of trackers for Bonferroni correction
+num_trackers <- length(unique(aggregated_data$eye_tracker))
+
 # For each eye tracker, compare dark vs bright conditions
 for (tracker in unique(aggregated_data$eye_tracker)) {
   # Subset data for this eye tracker
@@ -111,6 +114,12 @@ for (tracker in unique(aggregated_data$eye_tracker)) {
     bright_sd <- sd(bright_data)
   }
   
+  # Get the unadjusted p-value
+  p_value <- t_test_result$p.value
+  
+  # Apply Bonferroni correction
+  p_value_adjusted <- min(p_value * num_trackers, 1.0)
+  
   # Interpret effect size
   effect_interpretation <- case_when(
     abs(cohens_d) < 0.2 ~ "Negligible",
@@ -130,7 +139,8 @@ for (tracker in unique(aggregated_data$eye_tracker)) {
     bright_sd = bright_sd,
     t_statistic = t_test_result$statistic,
     df = t_test_result$parameter,
-    p_value = t_test_result$p.value,
+    p_value = p_value,
+    p_value_adjusted = p_value_adjusted,
     mean_diff = ifelse(test_type == "Paired t-test", 
                        t_test_result$estimate, 
                        t_test_result$estimate[1] - t_test_result$estimate[2]),
@@ -145,6 +155,7 @@ for (tracker in unique(aggregated_data$eye_tracker)) {
 cat("\n===============================================================\n")
 cat("Statistical Analysis of Accuracy Differences (dark vs. bright)\n")
 cat("===============================================================\n")
+cat("Bonferroni Correction Applied (", num_trackers, " tests, alpha adjusted from 0.05 to ", round(0.05/num_trackers, 4), ")\n", sep="")
 
 for (i in 1:nrow(stat_results)) {
   cat("\nEye Tracker:", stat_results$eye_tracker[i], "\n")
@@ -156,8 +167,10 @@ for (i in 1:nrow(stat_results)) {
       "(SD =", round(stat_results$bright_sd[i], 3), ")\n")
   cat("t-statistic:", round(stat_results$t_statistic[i], 3), 
       "(df =", round(stat_results$df[i], 1), ")\n")
-  cat("p-value:", format.pval(stat_results$p_value[i], digits = 3), 
+  cat("Unadjusted p-value:", format.pval(stat_results$p_value[i], digits = 3), 
       ifelse(stat_results$p_value[i] < 0.05, " (significant)", " (not significant)"), "\n")
+  cat("Bonferroni-adjusted p-value:", format.pval(stat_results$p_value_adjusted[i], digits = 3), 
+      ifelse(stat_results$p_value_adjusted[i] < 0.05, " (significant)", " (not significant)"), "\n")
   cat("Mean difference:", round(stat_results$mean_diff[i], 3), "\n")
   cat("Cohen's d:", round(stat_results$cohens_d[i], 3), 
       paste0("(", stat_results$effect_size[i], " effect)"), "\n")
@@ -183,6 +196,9 @@ pooled_sd_overall <- sqrt(((length(dark_overall)-1)*var(dark_overall) +
                             (length(dark_overall) + length(bright_overall) - 2))
 cohens_d_overall <- (mean(dark_overall) - mean(bright_overall)) / pooled_sd_overall
 
+# For the overall test, Bonferroni correction is not applied as it's just one test
+p_value_overall <- overall_t_test$p.value
+
 # Interpret effect size
 effect_overall <- case_when(
   abs(cohens_d_overall) < 0.2 ~ "Negligible",
@@ -203,31 +219,38 @@ cat("bright condition: M =", round(overall_stats$mean[overall_stats$trial_condit
     ", n =", overall_stats$n[overall_stats$trial_condition == "bright"], ")\n")
 cat("t-statistic:", round(overall_t_test$statistic, 3), 
     "(df =", round(overall_t_test$parameter, 1), ")\n")
-cat("p-value:", format.pval(overall_t_test$p.value, digits = 3), 
-    ifelse(overall_t_test$p.value < 0.05, " (significant)", " (not significant)"), "\n")
+cat("p-value:", format.pval(p_value_overall, digits = 3), 
+    ifelse(p_value_overall < 0.05, " (significant)", " (not significant)"), "\n")
 cat("Mean difference:", round(overall_t_test$estimate[1] - overall_t_test$estimate[2], 3), "\n")
 cat("Cohen's d:", round(cohens_d_overall, 3), 
     paste0("(", effect_overall, " effect)"), "\n")
+cat("Note: Bonferroni correction was not applied to the overall test as it is a single comparison.\n")
 
 # Create a formatted table for potential use in publication
 formatted_table <- stat_results %>%
   mutate(
     tracker = eye_tracker,
     condition = paste0("dark: ", sprintf("%.3f (%.3f)", dark_mean, dark_sd), 
-                       "\nbright: ", sprintf("%.3f (%.3f)", bright_mean, bright_sd)),
-    test_results = sprintf("t(%0.1f) = %0.2f, %s", 
-                           df, 
-                           t_statistic, 
-                           ifelse(p_value < 0.001, "p < 0.001", 
-                                  ifelse(p_value < 0.01, "p < 0.01", 
-                                         ifelse(p_value < 0.05, "p < 0.05", 
-                                                sprintf("p = %0.3f", p_value))))),
+                       " bright: ", sprintf("%.3f (%.3f)", bright_mean, bright_sd)),
+    test_results = sprintf("t(%0.1f) = %0.2f", df, t_statistic),
+    p_values = sprintf("p = %s, p_adj = %s", 
+                       ifelse(p_value < 0.001, "<0.001", 
+                              ifelse(p_value < 0.01, "<0.01", 
+                                     ifelse(p_value < 0.05, "<0.05", 
+                                            sprintf("%.3f", p_value)))),
+                       ifelse(p_value_adjusted < 0.001, "<0.001", 
+                              ifelse(p_value_adjusted < 0.01, "<0.01", 
+                                     ifelse(p_value_adjusted < 0.05, "<0.05", 
+                                            sprintf("%.3f", p_value_adjusted))))),
+    significance = ifelse(p_value < 0.05, 
+                          ifelse(p_value_adjusted < 0.05, "Both sig.", "Only p sig."), 
+                          "Not sig."),
     effect = sprintf("%0.2f (%s)", cohens_d, effect_size)
   ) %>%
-  select(tracker, test_type, n_samples, condition, test_results, effect)
+  select(tracker, test_type, n_samples, condition, test_results, p_values, significance, effect)
 
 # Print the formatted table
-cat("\n\nFormatted Table for Publication:\n")
+cat("\n\nFormatted Table for Publication (with both p-values):\n")
 print(formatted_table)
 
 # Save the statistical results to a CSV file

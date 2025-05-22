@@ -48,6 +48,9 @@ for (i in 1:nrow(basic_stats)) {
 # Perform statistical tests
 stat_results <- data.frame()
 
+# Count the number of eye trackers for Bonferroni correction
+num_trackers <- length(unique(aggregated_data$eye_tracker))
+
 # For each eye tracker, test if apparent_gaze_shift is significantly different from zero
 for (tracker in unique(aggregated_data$eye_tracker)) {
   # Subset data for this eye tracker
@@ -55,6 +58,12 @@ for (tracker in unique(aggregated_data$eye_tracker)) {
   
   # One-sample t-test against zero
   t_test_result <- t.test(tracker_data$apparent_gaze_shift, mu = 0)
+  
+  # Get the unadjusted p-value
+  p_value <- t_test_result$p.value
+  
+  # Apply Bonferroni correction
+  p_value_adjusted <- min(p_value * num_trackers, 1.0)
   
   # Calculate Cohen's d for one-sample t-test
   cohens_d <- mean(tracker_data$apparent_gaze_shift) / sd(tracker_data$apparent_gaze_shift)
@@ -75,7 +84,8 @@ for (tracker in unique(aggregated_data$eye_tracker)) {
     sd_apparent_gaze_shift = sd(tracker_data$apparent_gaze_shift),
     t_statistic = t_test_result$statistic,
     df = t_test_result$parameter,
-    p_value = t_test_result$p.value,
+    p_value = p_value,
+    p_value_adjusted = p_value_adjusted,
     cohens_d = cohens_d,
     effect_size = effect_interpretation
   )
@@ -87,6 +97,7 @@ for (tracker in unique(aggregated_data$eye_tracker)) {
 cat("\n===============================================================\n")
 cat("Statistical Analysis of apparent_gaze_shift (One-sample t-test against zero)\n")
 cat("===============================================================\n")
+cat("Bonferroni Correction Applied (", num_trackers, " tests, alpha adjusted from 0.05 to ", round(0.05/num_trackers, 4), ")\n", sep="")
 
 for (i in 1:nrow(stat_results)) {
   cat("\nEye Tracker:", stat_results$eye_tracker[i], "\n")
@@ -95,8 +106,10 @@ for (i in 1:nrow(stat_results)) {
       "(SD =", round(stat_results$sd_apparent_gaze_shift[i], 3), ")\n")
   cat("t-statistic:", round(stat_results$t_statistic[i], 3), 
       "(df =", round(stat_results$df[i], 1), ")\n")
-  cat("p-value:", format.pval(stat_results$p_value[i], digits = 3), 
+  cat("Unadjusted p-value:", format.pval(stat_results$p_value[i], digits = 3), 
       ifelse(stat_results$p_value[i] < 0.05, " (significant)", " (not significant)"), "\n")
+  cat("Bonferroni-adjusted p-value:", format.pval(stat_results$p_value_adjusted[i], digits = 3), 
+      ifelse(stat_results$p_value_adjusted[i] < 0.05, " (significant)", " (not significant)"), "\n")
   cat("Cohen's d:", round(stat_results$cohens_d[i], 3), 
       paste0("(", stat_results$effect_size[i], " effect)"), "\n")
 }
@@ -106,19 +119,25 @@ formatted_table <- stat_results %>%
   mutate(
     tracker = eye_tracker,
     mean_sd = sprintf("%.3f (%.3f)", mean_apparent_gaze_shift, sd_apparent_gaze_shift),
-    test_results = sprintf("t(%0.1f) = %0.2f, %s", 
-                           df, 
-                           t_statistic, 
-                           ifelse(p_value < 0.001, "p < 0.001", 
-                                  ifelse(p_value < 0.01, "p < 0.01", 
-                                         ifelse(p_value < 0.05, "p < 0.05", 
-                                                sprintf("p = %0.3f", p_value))))),
+    test_results = sprintf("t(%0.1f) = %0.2f", df, t_statistic),
+    p_values = sprintf("p = %s, p_adj = %s", 
+                       ifelse(p_value < 0.001, "<0.001", 
+                              ifelse(p_value < 0.01, "<0.01", 
+                                     ifelse(p_value < 0.05, "<0.05", 
+                                            sprintf("%.3f", p_value)))),
+                       ifelse(p_value_adjusted < 0.001, "<0.001", 
+                              ifelse(p_value_adjusted < 0.01, "<0.01", 
+                                     ifelse(p_value_adjusted < 0.05, "<0.05", 
+                                            sprintf("%.3f", p_value_adjusted))))),
+    significance = ifelse(p_value < 0.05, 
+                          ifelse(p_value_adjusted < 0.05, "Both sig.", "Only p sig."), 
+                          "Not sig."),
     effect = sprintf("%0.2f (%s)", cohens_d, effect_size)
   ) %>%
-  select(tracker, n_samples, mean_sd, test_results, effect)
+  select(tracker, n_samples, mean_sd, test_results, p_values, significance, effect)
 
 # Print the formatted table
-cat("\n\nFormatted Table for Publication:\n")
+cat("\n\nFormatted Table for Publication (with both p-values):\n")
 print(formatted_table)
 
 # Save the statistical results to a CSV file
