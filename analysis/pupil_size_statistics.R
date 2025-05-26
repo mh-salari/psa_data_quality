@@ -85,3 +85,14 @@ for (tracker in trackers) {
   
 # Save basic statistics to CSV in the current working directory
 write.csv(basic_stats, file = "./output/pupil_size_descriptive_stats.csv", row.names = FALSE)
+
+
+# Calculate overall average for bright and dark conditions
+overall_avg <- basic_stats %>%
+  group_by(trial_condition) %>%
+  summarize(
+    overall_mean = mean(mean),
+    .groups = "drop"
+  )
+
+print(overall_avg)

@@ -39,7 +39,7 @@ p <- ggplot(apparent_gaze_shift_df, aes(x = eye_tracker, y = apparent_gaze_shift
   
   # Add direct value labels with small gray outlines - increased size to 4.5
   shadowtext::geom_shadowtext(data = summary_stats,
-                              aes(x = eye_tracker, y = median_value, label = sprintf("%.3f", median_value)),
+                              aes(x = eye_tracker, y = median_value, label = sprintf("%.2f", median_value)),
                               vjust = -0.8, size = 4.5, fontface = "bold",
                               color = "black", bg.colour = "white", bg.r = 0.2) +
   
