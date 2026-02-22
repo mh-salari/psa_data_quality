@@ -16,11 +16,16 @@ summary_stats <- apparent_gaze_shift_df %>%
   summarize(
     mean_value = mean(apparent_gaze_shift, na.rm = TRUE),
     median_value = median(apparent_gaze_shift, na.rm = TRUE),
+    sd_value = sd(apparent_gaze_shift, na.rm = TRUE),
     .groups = "drop"
+  ) %>%
+  mutate(
+    mean_label = sprintf("%.2f ± %.2f", mean_value, sd_value)
   )
 # Define colors
 box_color <- "#575F82"  
 point_color <- "#8B7AA2"
+triangle_color <- "#566CE2"  # Blue triangle color for means
 # Create the plot - clean and simple
 p <- ggplot(apparent_gaze_shift_df, aes(x = eye_tracker, y = apparent_gaze_shift)) +
   # Add boxplots
@@ -37,9 +42,19 @@ p <- ggplot(apparent_gaze_shift_df, aes(x = eye_tracker, y = apparent_gaze_shift
                aes(group = 1), width = 0.5,
                linetype = "solid", size = 0.8, color = "#333333") +
   
-  # Add direct value labels with small gray outlines - increased size to 4.5
+  # Add white circles for medians
+  geom_point(data = summary_stats, 
+             aes(x = eye_tracker, y = median_value),
+             size = 2.5, shape = 21, fill = "#FFFFFF", color = "#063D51", stroke = 0.8) +
+  
+  # Add blue triangles for means
+  geom_point(data = summary_stats, 
+             aes(x = eye_tracker, y = mean_value),
+             size = 1.75, shape = 24, fill = triangle_color, color = "black", stroke = 0.8) +
+  
+  # Add direct value labels for means±SD with small gray outlines - increased size to 4.5
   shadowtext::geom_shadowtext(data = summary_stats,
-                              aes(x = eye_tracker, y = median_value, label = sprintf("%.2f", median_value)),
+                              aes(x = eye_tracker, y = mean_value, label = mean_label),
                               vjust = -0.8, size = 4.5, fontface = "bold",
                               color = "black", bg.colour = "white", bg.r = 0.2) +
   

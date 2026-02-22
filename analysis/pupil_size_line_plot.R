@@ -4,7 +4,7 @@ library(ggplot2)
 library(shadowtext)
 
 # Load the pupil size data
-path <- file.path("..", "data", "pupil_size.csv")
+path <- file.path("/Users/salari/Desktop/eyelink1000plus/data/pupil_size.csv")
 pupil_df <- read_csv(path, show_col_types = FALSE)
 
 # Filter out invalid data and calculate average pupil diameter
